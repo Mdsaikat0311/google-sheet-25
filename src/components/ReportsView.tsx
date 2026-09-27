@@ -325,6 +325,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     return colL === 'delivery' || colL === 'pending' || colL === 'partial';
   };
 
+  // Helper strictly checking if Sheet2 Column J is 'Complete'
+  const isColJComplete = (_status?: string) => {
+    const s = String(_status || '').toLowerCase().trim();
+    return s === 'complete' || s === 'completed' || s.includes('complete') || s.includes('comp') || s.includes('কমপ্লিট');
+  };
+
   const isDelivered = (_status?: string, courierStatus?: string) => {
     return getColumnLCourierStatus(courierStatus, _status) === 'delivery';
   };
@@ -456,7 +462,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         totalCompleted++;
       }
 
-      totalQuantity += o.quantity || 1;
+      // User requirement: Sheet 2 Column J তে 'Complete' সিলেক্ট করা অর্ডারের Column N (Quantity) শুধু কাউন্ট হবে
+      if (isColJComplete(o.status)) {
+        totalQuantity += Number(o.quantity) || 1;
+      }
       totalAmount += o.amount || o.total || 0;
     });
 
@@ -538,7 +547,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         if (isDelivered(o.status, o.courierStatus)) sourceMap[cleanName].delivery += 1;
         if (isPartial(o.status, o.courierStatus)) sourceMap[cleanName].partial += 1;
         if (isPending(o.status, o.courierStatus)) sourceMap[cleanName].pending += 1;
-        sourceMap[cleanName].quantity += o.quantity || 1;
+        if (isColJComplete(o.status)) {
+          sourceMap[cleanName].quantity += Number(o.quantity) || 1;
+        }
         if (isCancelled(o.status, o.courierStatus)) sourceMap[cleanName].cancel += 1;
       });
 
@@ -682,7 +693,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         completed++;
       }
 
-      quantity += o.quantity || 1;
+      if (isColJComplete(o.status)) {
+        quantity += Number(o.quantity) || 1;
+      }
       amount += o.amount || o.total || 0;
     });
 
@@ -1356,7 +1369,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 {aggregatedStats.totalQuantity} <span className="text-xs font-semibold text-gray-400">পিস</span>
               </div>
               <div className="text-[11px] text-gray-400 mt-1 truncate">
-                আইটেম: <strong className="text-cyan-200">মোট পিস</strong>
+                কমপ্লিট: <strong className="text-cyan-200">মোট পিস</strong>
               </div>
             </div>
           </div>
